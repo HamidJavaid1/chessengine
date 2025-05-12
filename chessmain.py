@@ -21,10 +21,43 @@ def main():
     gs = chessengine.GameState()
     load_images()
     running = True
+    Sqselected = ()
+    playesclicks = []
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
+            elif e.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()
+                row = location[1] // Sqsize
+                col = location[0] // Sqsize
+                piece = gs.board[row][col]
+
+                if Sqselected == (row, col):
+                    Sqselected = ()
+                    playesclicks = []
+                else:
+                    # If first click, only allow selecting a piece of the current player
+                    if len(playesclicks) == 0:
+                        if piece != "--" and ((piece[0] == 'w' and gs.whitetomove) or (piece[0] == 'b' and not gs.whitetomove)):
+                            Sqselected = (row, col)
+                            playesclicks.append(Sqselected)
+                    else:
+                        Sqselected = (row, col)
+                        playesclicks.append(Sqselected)
+
+                if len(playesclicks) == 2:
+                    move = chessengine.Move(playesclicks[0], playesclicks[1], gs.board)
+                    print(move.getChessNotation())
+                    gs.makemove(move)
+                    Sqselected = ()
+                    playesclicks = []
+            elif e.type==p.KEYDOWN:
+                if e.key == p.K_z:
+                    gs.undomove()
+
+
+
         drawgamestate(screen, gs)
         clock.tick(MaxFps)
         p.display.flip()
